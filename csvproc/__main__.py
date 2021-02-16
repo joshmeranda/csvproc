@@ -18,9 +18,11 @@ def parse() -> typing.Optional[argparse.Namespace]:
     out_group.add_argument("--json-pretty", action="store_const", const=summarize.SummaryFormat.JSON_PRETTY, dest="format",
                            help="output the summary nicely formatted json")
     out_group.add_argument("--default", action="store_const", const=summarize.SummaryFormat.DEFAULT, dest="format",
+                           default=summarize.SummaryFormat.DEFAULT,
                            help="use the default output format, displaying only relevant information")
     out_group.add_argument("--verbose", action="store_const", const=summarize.SummaryFormat.VERBOSE, dest="format",
                            help="use the default output format, displaying all information")
+    parser.set_defaults(format=summarize.SummaryFormat.DEFAULT)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -31,8 +33,6 @@ def parse() -> typing.Optional[argparse.Namespace]:
 
 def main():
     args = parse()
-
-    print(args)
 
     if args is None:
         return
