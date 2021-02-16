@@ -10,7 +10,7 @@ import csvproc.summarize as summarize
 def parse() -> typing.Optional[argparse.Namespace]:
     parser = argparse.ArgumentParser("csvproc", "csv file and column summarizer")
 
-    parser.add_argument("file")
+    parser.add_argument("file", type=argparse.FileType('r'))
 
     out_group = parser.add_mutually_exclusive_group()
     out_group.add_argument("--json", action="store_const", const=summarize.SummaryFormat.JSON, dest="format",
@@ -37,7 +37,7 @@ def main():
     if args is None:
         return
 
-    summary = summarize.CsvSummary(path="/home/josh/PycharmProjects/csvproc/lotr.csv")
+    summary = summarize.CsvSummary(file=args.file)
 
     summary.write_summary(sys.stdout, args.format)
 

@@ -101,6 +101,27 @@ class ColumnSummary:
         object.__setattr__(self, "type", column_type)
 
 
+class SummaryEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, CsvSummary):
+            return {
+                "columns": [self.default(column) for column in obj.columns],
+                "record_count": obj.record_count
+            }
+
+        if isinstance(obj, ColumnSummary):
+            return {
+                "field_name": obj.field_name,
+                "type": obj.type,
+                "choices": list(obj.choices),
+                "optional": obj.optional,
+                "boolean": obj.boolean,
+                "enum": obj.enum
+            }
+
+        return json.JSONEncoder.default(self, obj)
+
+
 @dataclasses.dataclass(frozen=True)
 class CsvSummary:
     path: str
@@ -151,7 +172,7 @@ class CsvSummary:
             self.columns.append(summary)
 
     def write_summary(self, file: typing.TextIO, summary_format: SummaryFormat,
-                      encoder: typing.Type[json.JSONEncoder] = json.JSONEncoder):
+                      encoder: typing.Type[json.JSONEncoder] = SummaryEncoder):
         """Write a text representation of the csv summary.
 
         :param file: The open file like object to which the summary is to be written.
@@ -187,24 +208,3 @@ class CsvSummary:
             raise Exception("Unsupported summary format")
 
         file.write(summary)
-
-
-class SummaryEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, CsvSummary):
-            return {
-                "columns": [self.default(column) for column in obj.columns],
-                "record_count": obj.record_count
-            }
-
-        if isinstance(obj, ColumnSummary):
-            return {
-                "field_name": obj.field_name,
-                "type": obj.type,
-                "choices": list(obj.choices),
-                "optional": obj.optional,
-                "boolean": obj.boolean,
-                "enum": obj.enum
-            }
-
-        return json.JSONEncoder.default(self, obj)
