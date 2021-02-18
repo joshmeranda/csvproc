@@ -13,7 +13,9 @@ class ColumnType(enum.IntEnum):
     """Describes the data type of a columns values.
 
     Each enum field's assigned value represents the data type parsing
-    precedence when determine the type of a record value.
+    precedence when determine the type of a record value. NOTE: this
+    precedence is not enforced or used anywhere so take care to make
+    `determine_type` reflect this precedence.
     """
     UNKNOWN = 0
 
@@ -29,12 +31,6 @@ class ColumnType(enum.IntEnum):
     def determine_type(value: str) -> ColumnType:
         """Determine the data type of the column"""
         try:
-            dateutil.parser.parse(value)
-            return ColumnType.DATETIME
-        except ValueError:
-            pass
-
-        try:
             float(value)
             return ColumnType.FLOAT
         except ValueError:
@@ -43,6 +39,12 @@ class ColumnType(enum.IntEnum):
         try:
             int(value)
             return ColumnType.INT
+        except ValueError:
+            pass
+
+        try:
+            dateutil.parser.parse(value)
+            return ColumnType.DATETIME
         except ValueError:
             pass
 
@@ -187,9 +189,10 @@ class CsvSummary:
         elif summary_format == SummaryFormat.DEFAULT or summary_format == SummaryFormat.VERBOSE:
             summary: str = (f"=== {self.path} ====\n"
                             f"Record Count: {self.record_count}\n\n")
+
             for column in self.columns:
                 summary += (f"Field Name: {column.field_name}\n"
-                            f"Type: {column.type.value}")
+                            f"Type: {column.type.name.lower()}")
 
                 summary += ", boolean\n" if column.boolean else "\n"
 
