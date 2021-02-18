@@ -71,7 +71,6 @@ class ColumnSummary:
     choices: typing.Set[str]
     optional: bool = False
     boolean: bool = False
-    enum: bool = False
 
     def __init__(self, field_name: str, values: typing.Set[str]):
         """A simple summary class describing a single column in a csv file.
@@ -115,8 +114,7 @@ class SummaryEncoder(json.JSONEncoder):
                 "type": obj.type,
                 "choices": list(obj.choices),
                 "optional": obj.optional,
-                "boolean": obj.boolean,
-                "enum": obj.enum
+                "boolean": obj.boolean
             }
 
         return json.JSONEncoder.default(self, obj)
@@ -149,7 +147,7 @@ class CsvSummary:
 
     def __summarize(self, file: typing.TextIO):
         """Parse and initialize summary values.
-        todo: validate csv date
+        todo: validate csv data
             not empty
             has headers
 
@@ -191,18 +189,16 @@ class CsvSummary:
                             f"Record Count: {self.record_count}\n\n")
             for column in self.columns:
                 summary += (f"Field Name: {column.field_name}\n"
-                            f"Type: {column.type.value}\n")
+                            f"Type: {column.type.value}")
+
+                summary += ", boolean\n" if column.boolean else "\n"
 
                 if summary_format == SummaryFormat.VERBOSE or column.optional:
                     summary += f"Optional: {column.optional}\n"
 
-                if summary_format == SummaryFormat.VERBOSE or column.boolean:
-                    summary += f"Boolean: {column.boolean}\n"
+                summary += str(column.choices)
 
-                if summary_format == SummaryFormat.VERBOSE or column.enum:
-                    summary += f"Enum: {column.enum} {column.choices}\n"
-
-                summary += "\n"
+                summary += "\n\n"
 
         else:
             raise Exception("Unsupported summary format")
